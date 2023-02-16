@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  cfdb:
+    platform: linux/amd64
+    image: mysql:5.7
+    environment:
+      MYSQL_DATABASE: 'localcf'
+      MYSQL_ROOT_PASSWORD: 'root'
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - 33061:3306
+    volumes:
+      - ./db-data:/var/lib/mysql
+  
+  coldfusion:
+    image: adobecoldfusion/coldfusion:latest
+    ports:
+      - "8500:8500"
+    environment:
+      acceptEULA: "YES"
+    volumes:
+      - ./myapp:/app
+      - ./config:/opt/coldfusion/config
+    depends_on:
+      - cfdb
+      
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    depends_on:
+      - cfdb
+    ports:
+      - "8183:80"
+    environment:
+      MYSQL_USERNAME: root
+      MYSQL_ROOT_PASSWORD: root
+      PMA_ARBITRARY: 1
+      UPLOAD_LIMIT: 100000000
